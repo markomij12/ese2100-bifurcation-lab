@@ -150,7 +150,7 @@
       cursor: pointer;
     }
     .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-    .btns button, .custom-row button {
+    .btns button {
       background: var(--bg-3);
       color: var(--text);
       border: 1px solid var(--line);
@@ -159,7 +159,7 @@
       cursor: pointer;
     }
     .btns button.active { border-color: var(--mu); color: var(--mu); }
-    .btns button:hover, .custom-row button:hover { border-color: var(--muted); }
+    .btns button:hover { border-color: var(--muted); }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -198,19 +198,6 @@
       color: var(--text);
     }
     .identify strong { color: var(--mu); font-weight: 600; }
-    .custom-box { padding: 0 16px 14px; display: none; }
-    .custom-box.on { display: block; }
-    .custom-box input[type="text"] {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--line);
-      color: var(--text);
-      padding: 8px 10px;
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 13px;
-      margin: 8px 0;
-    }
-    .custom-row { display: flex; flex-wrap: wrap; gap: 6px; }
     .lower {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -277,16 +264,6 @@
             <div class="name" id="sysname"></div>
             <div class="eq" id="syseq"></div>
             <p class="story" id="sysstory"></p>
-          </div>
-          <div class="custom-box" id="custombox">
-            <label for="customf" style="font-size:12px;color:var(--muted)">f(x, mu)</label>
-            <input id="customf" type="text" value="mu*x - x**3" spellcheck="false" />
-            <div class="custom-row">
-              <button data-expr="mu - x**2">μ − x²</button>
-              <button data-expr="mu*x - x**2">μx − x²</button>
-              <button data-expr="mu*x - x**3">μx − x³</button>
-              <button data-expr="mu - sin(x)">μ − sin x</button>
-            </div>
           </div>
           <div class="controls">
             <div class="row"><label for="mu">parameter μ</label><span class="val" id="muval"></span></div>
@@ -397,7 +374,7 @@
     },
     {
       id: "pf",
-      name: "Pitchfork",
+      name: "Pitchfork (super)",
       eq: "ẋ = μx − x³ + ε",
       story: "A symmetric system: one well splits into two. A bead on a rotating hoop sits at the bottom until the hoop spins fast enough; then the bottom becomes a hill and the bead chooses a left or right well. Euler buckling of a perfect column is the same pitchfork. Nudge the imperfection ε off zero and the pitchfork breaks — a continuous branch plus a saddle-node. Nature is never perfectly symmetric, so this is how pitchforks usually appear.",
       mu: { min: -1.6, max: 1.6, init: -0.55 },
@@ -419,7 +396,7 @@
     },
     {
       id: "sub",
-      name: "Subcritical",
+      name: "Pitchfork (sub)",
       eq: "ẋ = μx + x³ − x⁵",
       story: "The pitchfork that jumps. Unstable branches exist before the origin loses stability, so when μ crosses zero the state cannot peel off gently — it leaps to a large-amplitude attractor. Coming back, it stays there until a saddle-node at μ = −1/4. That mismatch is hysteresis. Press “Hysteresis loop” and ride it.",
       mu: { min: -0.7, max: 0.7, init: -0.4 },
@@ -438,44 +415,6 @@
         if (mu > 0.03) return "The origin is unstable. Only the large-amplitude pair remains. There is no small stable oscillation to peel off onto.";
         return "Subcritical pitchfork at μ = 0. The origin loses stability while the outer wells are already a finite distance away — a jump.";
       }
-    },
-    {
-      id: "hoop",
-      name: "Rotating hoop",
-      eq: "θ̇ = sinθ (μ cosθ − 1)",
-      story: "A physical pitchfork, not the normal form. A wire hoop spins about its vertical diameter; a bead slides with strong damping. μ = Rω²/g. When the hoop is slow (μ < 1) the bottom is the only attractor. At μ = 1 the bottom pitchforks, and the bead climbs to θ* = ±arccos(1/μ). The top of the hoop stays unstable the whole time. Small θ recovers ẋ = (μ−1)x − … x³.",
-      mu: { min: 0.05, max: 3.2, init: 0.55 },
-      x: { min: -Math.PI, max: Math.PI },
-      eps: false,
-      visual: "hoop-phys",
-      world: "Bead on a spinning hoop · μ = Rω² / g",
-      ylabel: "θ",
-      f: (th, mu) => Math.sin(th) * (mu * Math.cos(th) - 1),
-      V: (th, mu) => 0.5 * mu * Math.sin(th) ** 2 + Math.cos(th),
-      bif: 1,
-      resetX: 0.18,
-      regime(mu) {
-        if (mu < 0.92) return "μ = Rω²/g < 1. Gravity wins: the bottom θ = 0 is stable, the top θ = ±π is unstable.";
-        if (mu > 1.08) return "Spin wins. Bottom is unstable; two stable rest points at ±arccos(1/μ). The bead has climbed the hoop.";
-        return "Physical pitchfork: μ = 1 means ω = √(g/R). The bottom loses stability and the bead must leave the axis.";
-      }
-    },
-    {
-      id: "custom",
-      name: "Custom engine",
-      eq: "ẋ = f(x, μ)",
-      story: "Type a JavaScript expression in x and mu. The engine sweeps μ, Newton-finds roots of f, and classifies them by the sign of fₓ. Try μ - Math.sin(x) for an overdamped pendulum with constant torque — saddle-nodes at μ = ±1, a cousin of the fold on a circle.",
-      mu: { min: -2, max: 2, init: 0.2 },
-      x: { min: -3, max: 3 },
-      eps: false,
-      visual: "potential",
-      world: "Potential reconstructed from −∫ f dx",
-      ylabel: "x",
-      f: (x, mu) => mu * x - x ** 3,
-      V: (x, mu) => -0.5 * mu * x * x + 0.25 * x ** 4,
-      bif: null,
-      resetX: 0.2,
-      regime() { return "Numerical continuation on a grid. Equilibria are roots of f(x,μ)=0; stable when fₓ<0."; }
     }
   ];
 
@@ -489,8 +428,7 @@
     hyst: false,
     hystDir: 1,
     diagram: [],
-    t: 0,
-    custom: "mu*x - x**3"
+    t: 0
   };
 
   const el = {
@@ -505,8 +443,6 @@
     epsWrap: document.getElementById("epsWrap"),
     identify: document.getElementById("identify"),
     table: document.getElementById("eqtable"),
-    custombox: document.getElementById("custombox"),
-    customf: document.getElementById("customf"),
     worldtitle: document.getElementById("worldtitle"),
     diagtitle: document.getElementById("diagtitle"),
     btnSweep: document.getElementById("btnSweep"),
@@ -517,18 +453,6 @@
     world: document.getElementById("world")
   };
 
-  function compile(expr) {
-    let js = String(expr).replace(/\^/g, "**");
-    js = js.replace(/\bMath\.(sin|cos|tan|tanh|abs|exp|log)\b/g, "$1");
-    js = js.replace(/\b(sin|cos|tan|tanh|abs|exp|log)\b/g, "Math.$1");
-    const fn = new Function("x", "mu", `"use strict"; return (${js});`);
-    fn(0.1, 0.1);
-    return (x, mu) => {
-      const v = fn(x, mu);
-      return Number.isFinite(v) ? v : 0;
-    };
-  }
-
   function f(x, mu) {
     const s = state.sys;
     if (s.eps) return s.f(x, mu, state.eps);
@@ -537,17 +461,6 @@
 
   function V(x, mu) {
     const s = state.sys;
-    if (s.id === "custom") {
-      let acc = 0;
-      const n = 80;
-      const dx = x / n;
-      for (let i = 0; i < n; i++) {
-        const xa = dx * i;
-        const xb = dx * (i + 1);
-        acc += 0.5 * (f(xa, mu) + f(xb, mu)) * dx;
-      }
-      return -acc;
-    }
     if (s.eps) return s.V(x, mu, state.eps);
     return s.V(x, mu);
   }
@@ -827,11 +740,11 @@
     ctx.fillText("V(x)", w / 2, h - 12);
   }
 
-  function drawHoop(ctx, w, h, physical) {
+  function drawHoop(ctx, w, h) {
     const cx = w * 0.5;
     const cy = h * 0.48;
     const R = Math.min(w, h) * 0.34;
-    const theta = physical ? state.x : state.x;
+    const theta = state.x;
     ctx.strokeStyle = GRID;
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -844,7 +757,7 @@
     ctx.arc(cx, cy, R, 0, TAU);
     ctx.stroke();
     const mu = state.mu;
-    const omega = physical ? Math.sqrt(Math.max(0.05, mu)) : Math.sqrt(Math.max(0.08, mu + 1.7));
+    const omega = Math.sqrt(Math.max(0.08, mu + 1.7));
     ctx.save();
     ctx.translate(cx, cy);
     ctx.strokeStyle = "rgba(230,195,92,0.55)";
@@ -859,7 +772,7 @@
     ctx.fillStyle = MU;
     ctx.font = "11px 'IBM Plex Mono', monospace";
     ctx.textAlign = "left";
-    ctx.fillText(physical ? `ω ~ √μ   μ = ${mu.toFixed(2)}` : `spin ~ √(μ+const)   μ = ${mu.toFixed(2)}`, 16, 22);
+    ctx.fillText(`μ = ${mu.toFixed(2)}`, 16, 22);
     const bx = cx + R * Math.sin(theta);
     const by = cy + R * Math.cos(theta);
     ctx.strokeStyle = MUTED;
@@ -894,8 +807,7 @@
     ctx.fillStyle = BG;
     ctx.fillRect(0, 0, w, h);
     const vis = state.sys.visual;
-    if (vis === "hoop") drawHoop(ctx, w, h, false);
-    else if (vis === "hoop-phys") drawHoop(ctx, w, h, true);
+    if (vis === "hoop") drawHoop(ctx, w, h);
     else drawPotential(ctx, w, h);
   }
 
@@ -914,13 +826,7 @@
     const sub = 6;
     const h = dt / sub;
     for (let i = 0; i < sub; i++) x = rk4(x, h);
-    if (state.sys.id === "hoop") {
-      while (x > Math.PI) x -= TAU;
-      while (x < -Math.PI) x += TAU;
-    } else {
-      x = Math.min(max, Math.max(min, x));
-    }
-    state.x = x;
+    state.x = Math.min(max, Math.max(min, x));
   }
 
   function stepSweep(dt) {
@@ -979,27 +885,14 @@
     el.story.textContent = s.story;
     el.epsWrap.style.display = s.eps ? "block" : "none";
     el.eps.value = "0";
-    el.custombox.classList.toggle("on", s.id === "custom");
     el.worldtitle.textContent = s.world;
     el.diagtitle.textContent = "Bifurcation diagram · " + (s.ylabel || "x") + " versus μ";
     document.querySelectorAll("#sysnav button").forEach((b) => {
       b.setAttribute("aria-selected", b.dataset.id === id ? "true" : "false");
     });
-    if (s.id === "custom") applyCustom();
-    else computeDiagram();
+    computeDiagram();
     fitWorld();
     if (location.hash.slice(1) !== id) history.replaceState(null, "", "#" + id);
-  }
-
-  function applyCustom() {
-    try {
-      const fn = compile(el.customf.value);
-      state.sys.f = (x, mu) => fn(x, mu);
-      state.custom = el.customf.value;
-      computeDiagram();
-    } catch (err) {
-      el.identify.textContent = "Could not parse f(x, mu). Use JS arithmetic, e.g. mu*x - x**3.";
-    }
   }
 
   function buildNav() {
@@ -1044,13 +937,6 @@
     if (state.hyst) state.hystDir = 1;
   });
   el.btnReset.addEventListener("click", () => { state.x = state.sys.resetX; });
-  el.customf.addEventListener("change", applyCustom);
-  document.querySelectorAll(".custom-row button").forEach((b) => {
-    b.addEventListener("click", () => {
-      el.customf.value = b.dataset.expr;
-      applyCustom();
-    });
-  });
 
   function pointerToX(canvas, plot, ev) {
     const r = canvas.getBoundingClientRect();
@@ -1072,7 +958,6 @@
   });
 
   window.addEventListener("keydown", (ev) => {
-    if (ev.target === el.customf) return;
     const span = state.sys.mu.max - state.sys.mu.min;
     if (ev.key === "ArrowRight") {
       state.mu = Math.min(state.sys.mu.max, state.mu + 0.02 * span);
