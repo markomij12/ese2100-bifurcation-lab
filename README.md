@@ -2,9 +2,9 @@
 
 Interactive 1-D visualization for continuous-time systems \(\dot x = f(x,\mu)\).
 
-**Live page:** open [`index.html`](index.html) in a browser, or the public URL once GitHub Pages is up.
+**Live page:** [markomij12.github.io/ese2100-bifurcation-lab](https://markomij12.github.io/ese2100-bifurcation-lab/)
 
-No install. One file.
+Repo: [github.com/markomij12/ese2100-bifurcation-lab](https://github.com/markomij12/ese2100-bifurcation-lab). Or open `index.html` locally — no install.
 
 ## What this is
 
