@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bifurcation Lab · ESE 2100</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0c0e12;
+      --bg-2: #13171d;
+      --bg-3: #1a1f27;
+      --line: #2a303a;
+      --text: #efeae0;
+      --muted: #9a9589;
+      --stable: #4ec9b0;
+      --unstable: #e07a5f;
+      --mu: #e6c35c;
+      --paper: #d9d3c5;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); color: var(--text); font-family: "IBM Plex Sans", system-ui, sans-serif; }
+    body { min-height: 100vh; }
+    button, input, select { font-family: inherit; }
+    .page {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 28px 22px 72px;
+    }
+    header.top {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: end;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 22px;
+    }
+    .kicker {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--mu);
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-family: "IBM Plex Serif", Georgia, serif;
+      font-size: 42px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .lede {
+      max-width: 420px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+      text-align: right;
+    }
+    nav.systems {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 20px 0 18px;
+    }
+    nav.systems button {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    nav.systems button[aria-selected="true"] {
+      color: var(--bg);
+      background: var(--paper);
+      border-color: var(--paper);
+    }
+    nav.systems button:hover { border-color: var(--muted); color: var(--text); }
+    nav.systems button[aria-selected="true"]:hover { color: var(--bg); }
+    .layout {
+      display: grid;
+      grid-template-columns: 1.7fr 1fr;
+      gap: 14px;
+    }
+    .panel {
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      min-height: 0;
+    }
+    .panel h2 {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      padding: 10px 12px 0;
+      font-weight: 500;
+    }
+    canvas { display: block; width: 100%; height: 340px; cursor: crosshair; }
+    #world { height: 280px; cursor: default; }
+    #field { height: 280px; }
+    .side { display: flex; flex-direction: column; gap: 14px; }
+    .eq-block {
+      padding: 16px 16px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .eq-block .name {
+      font-family: "IBM Plex Serif", Georgia, serif;
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .eq {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 16px;
+      color: var(--mu);
+      margin-bottom: 10px;
+    }
+    .story { color: var(--muted); font-size: 13.5px; line-height: 1.55; }
+    .controls { padding: 14px 16px 16px; }
+    .row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+    .row label { font-size: 13px; color: var(--muted); }
+    .row .val {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 13px;
+      color: var(--mu);
+    }
+    input[type="range"] {
+      width: 100%;
+      appearance: none;
+      height: 2px;
+      background: var(--line);
+      margin: 8px 0 14px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      background: var(--mu);
+      border-radius: 0;
+      cursor: pointer;
+    }
+    .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btns button, .custom-row button {
+      background: var(--bg-3);
+      color: var(--text);
+      border: 1px solid var(--line);
+      padding: 7px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btns button.active { border-color: var(--mu); color: var(--mu); }
+    .btns button:hover, .custom-row button:hover { border-color: var(--muted); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th {
+      text-align: left;
+      color: var(--muted);
+      font-weight: 500;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      padding: 0 0 8px;
+    }
+    td {
+      padding: 6px 8px 6px 0;
+      border-top: 1px solid var(--line);
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .pill.st { color: var(--bg); background: var(--stable); }
+    .pill.un { color: var(--bg); background: var(--unstable); }
+    .identify {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+    .identify strong { color: var(--mu); font-weight: 600; }
+    .custom-box { padding: 0 16px 14px; display: none; }
+    .custom-box.on { display: block; }
+    .custom-box input[type="text"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 8px 10px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 13px;
+      margin: 8px 0;
+    }
+    .custom-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .lower {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+    footer.notes {
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    footer.notes h3 {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    kbd {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 10px;
+      border: 1px solid var(--line);
+      padding: 1px 5px;
+      color: var(--text);
+    }
+    @media (max-width: 920px) {
+      header.top, .layout, .lower, footer.notes { grid-template-columns: 1fr; }
+      .lede { text-align: left; max-width: none; }
+      h1 { font-size: 34px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <div>
+        <div class="kicker">ESE 2100 · Simulation 3</div>
+        <h1>Bifurcation Lab</h1>
+      </div>
+      <p class="lede">
+        A one-dimensional engine for continuous-time systems
+        <em>ẋ = f(x, μ)</em>. Drag μ, drop a state, and watch equilibria
+        appear, collide, exchange stability, or split.
+      </p>
+    </header>
+
+    <nav class="systems" id="sysnav"></nav>
+
+    <div class="layout">
+      <section class="panel">
+        <h2 id="diagtitle">Bifurcation diagram · x versus μ</h2>
+        <canvas id="diagram" height="340"></canvas>
+      </section>
+      <aside class="side">
+        <section class="panel">
+          <div class="eq-block">
+            <div class="name" id="sysname"></div>
+            <div class="eq" id="syseq"></div>
+            <p class="story" id="sysstory"></p>
+          </div>
+          <div class="custom-box" id="custombox">
+            <label for="customf" style="font-size:12px;color:var(--muted)">f(x, mu)</label>
+            <input id="customf" type="text" value="mu*x - x**3" spellcheck="false" />
+            <div class="custom-row">
+              <button data-expr="mu - x**2">μ − x²</button>
+              <button data-expr="mu*x - x**2">μx − x²</button>
+              <button data-expr="mu*x - x**3">μx − x³</button>
+              <button data-expr="mu - sin(x)">μ − sin x</button>
+            </div>
+          </div>
+          <div class="controls">
+            <div class="row"><label for="mu">parameter μ</label><span class="val" id="muval"></span></div>
+            <input id="mu" type="range" />
+            <div id="epsWrap">
+              <div class="row"><label for="eps">imperfection ε</label><span class="val" id="epsval"></span></div>
+              <input id="eps" type="range" min="-0.4" max="0.4" step="0.001" value="0" />
+            </div>
+            <div class="btns">
+              <button id="btnSweep">Sweep μ →</button>
+              <button id="btnHyst">Hysteresis loop</button>
+              <button id="btnReset">Reset particle</button>
+            </div>
+            <div class="identify" id="identify"></div>
+          </div>
+        </section>
+        <section class="panel" style="padding:12px 16px 14px">
+          <h2 style="padding:0 0 10px">Equilibria at this μ</h2>
+          <table>
+            <thead><tr><th>x*</th><th>f<sub>x</sub>(x*)</th><th></th></tr></thead>
+            <tbody id="eqtable"></tbody>
+          </table>
+        </section>
+      </aside>
+    </div>
+
+    <div class="lower">
+      <section class="panel">
+        <h2>Vector field · f(x; μ) and the phase line</h2>
+        <canvas id="field"></canvas>
+      </section>
+      <section class="panel">
+        <h2 id="worldtitle">Physical analog</h2>
+        <canvas id="world"></canvas>
+      </section>
+    </div>
+
+    <footer class="notes">
+      <div>
+        <h3>How to read it</h3>
+        Solid teal branches are attracting equilibria; dashed coral branches are repelling.
+        The gold line is the current μ. Click the vector-field plot to drop a particle.
+        Arrow keys nudge μ; space starts a slow sweep.
+      </div>
+      <div>
+        <h3>Why one dimension</h3>
+        In a 1-D continuous-time system the only generic bifurcations of equilibria are
+        saddle-node, transcritical, and pitchfork. A Hopf bifurcation needs a 2-D phase
+        plane — saved for later. Discrete time (maps) can period-double; this lab stays
+        with flows ẋ = f(x, μ).
+      </div>
+    </footer>
+  </div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2;
+  const STABLE = "#4ec9b0";
+  const UNSTABLE = "#e07a5f";
+  const MU = "#e6c35c";
+  const INK = "#efeae0";
+  const MUTED = "#9a9589";
+  const GRID = "#2a303a";
+  const BG = "#13171d";
+
+  const SYSTEMS = [
+    {
+      id: "sn",
+      name: "Saddle-node",
+      eq: "ẋ = μ − x²",
+      story: "A stable well and an unstable hill walk toward each other, collide, and vanish. Past the fold there is nowhere to sit: the state runs off to −∞. This is the generic way equilibria are born or die in one dimension — also called a fold or a limit point. Snap-through buckling of an imperfect beam is the same geometry.",
+      mu: { min: -1.4, max: 1.4, init: -0.45 },
+      x: { min: -2.1, max: 2.1 },
+      eps: false,
+      visual: "potential",
+      world: "Cubic landscape · ball in V(x) = −μx + x³/3",
+      ylabel: "x",
+      f: (x, mu) => mu - x * x,
+      V: (x, mu) => -mu * x + (x * x * x) / 3,
+      bif: 0,
+      resetX: 0.35,
+      regime(mu) {
+        if (mu < -0.04) return "No equilibria. Every trajectory heads to −∞ — the landscape has no well.";
+        if (mu > 0.04) return "Two equilibria: x* = +√μ (stable) and x* = −√μ (unstable). The fold has already happened.";
+        return "At μ = 0 the two equilibria collide at the origin. This is a saddle-node: f = fₓ = 0 together.";
+      }
+    },
+    {
+      id: "tc",
+      name: "Transcritical",
+      eq: "ẋ = μx − x²",
+      story: "Two equilibria meet and pass through each other, exchanging stability. Neither is destroyed — they trade who attracts. Logistic growth ṅ = μn − n² is this equation: n = 0 is extinction, n = μ is the carrying capacity. At μ = 0 a population that could only die becomes one that can live. Lasers do the same thing at threshold.",
+      mu: { min: -1.6, max: 1.6, init: -0.7 },
+      x: { min: -1.3, max: 2.1 },
+      eps: false,
+      visual: "potential",
+      world: "Asymmetric well · V(x) = −μx²/2 + x³/3",
+      ylabel: "x",
+      f: (x, mu) => mu * x - x * x,
+      V: (x, mu) => -0.5 * mu * x * x + (x * x * x) / 3,
+      bif: 0,
+      resetX: 0.55,
+      regime(mu) {
+        if (mu < -0.04) return "x* = 0 is stable (extinction). The other branch x* = μ is unstable and sits to the left.";
+        if (mu > 0.04) return "They have exchanged: x* = 0 is now unstable, and the carrying capacity x* = μ attracts.";
+        return "Transcritical point. The two branches cross at the origin and swap stability. Persistence of both branches is what makes this the “hard” one to see in a gadget — they have to actually collide and pass through, not glance off.";
+      }
+    },
+    {
+      id: "pf",
+      name: "Pitchfork",
+      eq: "ẋ = μx − x³ + ε",
+      story: "A symmetric system: one well splits into two. A bead on a rotating hoop sits at the bottom until the hoop spins fast enough; then the bottom becomes a hill and the bead chooses a left or right well. Euler buckling of a perfect column is the same pitchfork. Nudge the imperfection ε off zero and the pitchfork breaks — a continuous branch plus a saddle-node. Nature is never perfectly symmetric, so this is how pitchforks usually appear.",
+      mu: { min: -1.6, max: 1.6, init: -0.55 },
+      x: { min: -2, max: 2 },
+      eps: true,
+      visual: "hoop",
+      world: "Bead on a rotating hoop · overdamped",
+      ylabel: "x",
+      f: (x, mu, eps) => mu * x - x * x * x + eps,
+      V: (x, mu, eps) => -0.5 * mu * x * x + 0.25 * x * x * x * x - eps * x,
+      bif: 0,
+      resetX: 0.12,
+      regime(mu, eps) {
+        if (Math.abs(eps) > 0.02) return "ε ≠ 0 unfolds the pitchfork. One branch continues smoothly through μ = 0; the other pair is born in a saddle-node. This is the imperfect bifurcation you actually meet in the lab.";
+        if (mu < -0.04) return "A single stable equilibrium at the origin — the hoop is slow, the bead hangs at the bottom.";
+        if (mu > 0.04) return "The bottom is unstable. Two stable wells at x* = ±√μ: the bead must pick a side.";
+        return "Supercritical pitchfork at μ = 0. The origin loses stability and two new stable equilibria branch off continuously.";
+      }
+    },
+    {
+      id: "sub",
+      name: "Subcritical",
+      eq: "ẋ = μx + x³ − x⁵",
+      story: "The pitchfork that jumps. Unstable branches exist before the origin loses stability, so when μ crosses zero the state cannot peel off gently — it leaps to a large-amplitude attractor. Coming back, it stays there until a saddle-node at μ = −1/4. That mismatch is hysteresis. Press “Hysteresis loop” and ride it.",
+      mu: { min: -0.7, max: 0.7, init: -0.4 },
+      x: { min: -1.6, max: 1.6 },
+      eps: false,
+      visual: "potential",
+      world: "Hard-excitation landscape · V with x⁶ saturation",
+      ylabel: "x",
+      f: (x, mu) => mu * x + x * x * x - x ** 5,
+      V: (x, mu) => -0.5 * mu * x * x - 0.25 * x ** 4 + (x ** 6) / 6,
+      bif: 0,
+      resetX: 0.05,
+      regime(mu) {
+        if (mu < -0.27) return "Only the origin is stable. Large-amplitude wells have already annihilated with saddles (μ = −1/4).";
+        if (mu < -0.03) return "Bistable: the origin is still attracting, but two outer wells already exist. Which one you land in depends on history.";
+        if (mu > 0.03) return "The origin is unstable. Only the large-amplitude pair remains. There is no small stable oscillation to peel off onto.";
+        return "Subcritical pitchfork at μ = 0. The origin loses stability while the outer wells are already a finite distance away — a jump.";
+      }
+    },
+    {
+      id: "hoop",
+      name: "Rotating hoop",
+      eq: "θ̇ = sinθ (μ cosθ − 1)",
+      story: "A physical pitchfork, not the normal form. A wire hoop spins about its vertical diameter; a bead slides with strong damping. μ = Rω²/g. When the hoop is slow (μ < 1) the bottom is the only attractor. At μ = 1 the bottom pitchforks, and the bead climbs to θ* = ±arccos(1/μ). The top of the hoop stays unstable the whole time. Small θ recovers ẋ = (μ−1)x − … x³.",
+      mu: { min: 0.05, max: 3.2, init: 0.55 },
+      x: { min: -Math.PI, max: Math.PI },
+      eps: false,
+      visual: "hoop-phys",
+      world: "Bead on a spinning hoop · μ = Rω² / g",
+      ylabel: "θ",
+      f: (th, mu) => Math.sin(th) * (mu * Math.cos(th) - 1),
+      V: (th, mu) => 0.5 * mu * Math.sin(th) ** 2 + Math.cos(th),
+      bif: 1,
+      resetX: 0.18,
+      regime(mu) {
+        if (mu < 0.92) return "μ = Rω²/g < 1. Gravity wins: the bottom θ = 0 is stable, the top θ = ±π is unstable.";
+        if (mu > 1.08) return "Spin wins. Bottom is unstable; two stable rest points at ±arccos(1/μ). The bead has climbed the hoop.";
+        return "Physical pitchfork: μ = 1 means ω = √(g/R). The bottom loses stability and the bead must leave the axis.";
+      }
+    },
+    {
+      id: "custom",
+      name: "Custom engine",
+      eq: "ẋ = f(x, μ)",
+      story: "Type a JavaScript expression in x and mu. The engine sweeps μ, Newton-finds roots of f, and classifies them by the sign of fₓ. Try μ - Math.sin(x) for an overdamped pendulum with constant torque — saddle-nodes at μ = ±1, a cousin of the fold on a circle.",
+      mu: { min: -2, max: 2, init: 0.2 },
+      x: { min: -3, max: 3 },
+      eps: false,
+      visual: "potential",
+      world: "Potential reconstructed from −∫ f dx",
+      ylabel: "x",
+      f: (x, mu) => mu * x - x ** 3,
+      V: (x, mu) => -0.5 * mu * x * x + 0.25 * x ** 4,
+      bif: null,
+      resetX: 0.2,
+      regime() { return "Numerical continuation on a grid. Equilibria are roots of f(x,μ)=0; stable when fₓ<0."; }
+    }
+  ];
+
+  const state = {
+    sys: SYSTEMS[0],
+    mu: SYSTEMS[0].mu.init,
+    eps: 0,
+    x: SYSTEMS[0].resetX,
+    vx: 0,
+    sweep: 0,
+    hyst: false,
+    hystDir: 1,
+    diagram: [],
+    t: 0,
+    custom: "mu*x - x**3"
+  };
+
+  const el = {
+    nav: document.getElementById("sysnav"),
+    name: document.getElementById("sysname"),
+    eq: document.getElementById("syseq"),
+    story: document.getElementById("sysstory"),
+    mu: document.getElementById("mu"),
+    muval: document.getElementById("muval"),
+    eps: document.getElementById("eps"),
+    epsval: document.getElementById("epsval"),
+    epsWrap: document.getElementById("epsWrap"),
+    identify: document.getElementById("identify"),
+    table: document.getElementById("eqtable"),
+    custombox: document.getElementById("custombox"),
+    customf: document.getElementById("customf"),
+    worldtitle: document.getElementById("worldtitle"),
+    diagtitle: document.getElementById("diagtitle"),
+    btnSweep: document.getElementById("btnSweep"),
+    btnHyst: document.getElementById("btnHyst"),
+    btnReset: document.getElementById("btnReset"),
+    diagram: document.getElementById("diagram"),
+    field: document.getElementById("field"),
+    world: document.getElementById("world")
+  };
+
+  function compile(expr) {
+    let js = String(expr).replace(/\^/g, "**");
+    js = js.replace(/\bMath\.(sin|cos|tan|tanh|abs|exp|log)\b/g, "$1");
+    js = js.replace(/\b(sin|cos|tan|tanh|abs|exp|log)\b/g, "Math.$1");
+    const fn = new Function("x", "mu", `"use strict"; return (${js});`);
+    fn(0.1, 0.1);
+    return (x, mu) => {
+      const v = fn(x, mu);
+      return Number.isFinite(v) ? v : 0;
+    };
+  }
+
+  function f(x, mu) {
+    const s = state.sys;
+    if (s.eps) return s.f(x, mu, state.eps);
+    return s.f(x, mu);
+  }
+
+  function V(x, mu) {
+    const s = state.sys;
+    if (s.id === "custom") {
+      let acc = 0;
+      const n = 80;
+      const dx = x / n;
+      for (let i = 0; i < n; i++) {
+        const xa = dx * i;
+        const xb = dx * (i + 1);
+        acc += 0.5 * (f(xa, mu) + f(xb, mu)) * dx;
+      }
+      return -acc;
+    }
+    if (s.eps) return s.V(x, mu, state.eps);
+    return s.V(x, mu);
+  }
+
+  function dfdx(x, mu) {
+    const h = 1e-5;
+    return (f(x + h, mu) - f(x - h, mu)) / (2 * h);
+  }
+
+  function findEq(mu) {
+    const { min, max } = state.sys.x;
+    const roots = [];
+    const n = 72;
+    for (let i = 0; i <= n; i++) {
+      let x = min + (max - min) * (i / n);
+      for (let k = 0; k < 28; k++) {
+        const df = dfdx(x, mu);
+        const fx = f(x, mu);
+        if (Math.abs(df) < 1e-12) break;
+        const nx = x - fx / df;
+        if (!Number.isFinite(nx)) break;
+        if (Math.abs(nx - x) < 1e-12) { x = nx; break; }
+        x = nx;
+      }
+      if (x < min - 0.05 || x > max + 0.05) continue;
+      if (Math.abs(f(x, mu)) > 2e-4) continue;
+      x = Math.min(max, Math.max(min, x));
+      if (roots.some((r) => Math.abs(r - x) < 0.012)) continue;
+      roots.push(x);
+    }
+    roots.sort((a, b) => a - b);
+    return roots.map((x) => {
+      const df = dfdx(x, mu);
+      return { x, df, stable: df < -1e-6 };
+    });
+  }
+
+  function computeDiagram() {
+    const pts = [];
+    const n = 420;
+    const { min, max } = state.sys.mu;
+    for (let i = 0; i <= n; i++) {
+      const mu = min + (max - min) * (i / n);
+      for (const e of findEq(mu)) pts.push({ mu, ...e });
+    }
+    state.diagram = pts;
+  }
+
+  class Plot {
+    constructor(canvas, pad) {
+      this.c = canvas;
+      this.ctx = canvas.getContext("2d");
+      this.pad = pad || { l: 46, r: 16, t: 18, b: 38 };
+      this.xl = -1; this.xr = 1; this.yb = -1; this.yt = 1;
+    }
+    resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const r = this.c.getBoundingClientRect();
+      this.w = r.width;
+      this.h = r.height;
+      this.c.width = Math.round(r.width * dpr);
+      this.c.height = Math.round(r.height * dpr);
+      this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    set(xl, xr, yb, yt) { this.xl = xl; this.xr = xr; this.yb = yb; this.yt = yt; }
+    X(x) { return this.pad.l + (x - this.xl) / (this.xr - this.xl) * (this.w - this.pad.l - this.pad.r); }
+    Y(y) { return this.h - this.pad.b - (y - this.yb) / (this.yt - this.yb) * (this.h - this.pad.t - this.pad.b); }
+    invX(px) {
+      return this.xl + (px - this.pad.l) / (this.w - this.pad.l - this.pad.r) * (this.xr - this.xl);
+    }
+    clear() {
+      this.ctx.fillStyle = BG;
+      this.ctx.fillRect(0, 0, this.w, this.h);
+    }
+    axes(xLabel, yLabel) {
+      const { ctx } = this;
+      ctx.strokeStyle = GRID;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(this.X(this.xl), this.Y(0));
+      ctx.lineTo(this.X(this.xr), this.Y(0));
+      ctx.moveTo(this.X(0), this.Y(this.yb));
+      ctx.lineTo(this.X(0), this.Y(this.yt));
+      ctx.stroke();
+      ctx.fillStyle = MUTED;
+      ctx.font = "11px 'IBM Plex Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText(xLabel, (this.X(this.xl) + this.X(this.xr)) / 2, this.h - 18);
+      ctx.save();
+      ctx.translate(14, (this.Y(this.yb) + this.Y(this.yt)) / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText(fmt(this.xl), this.X(this.xl) + 10, this.h - 32);
+      ctx.fillText(fmt(this.xr), this.X(this.xr), this.h - 32);
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      ctx.fillText(fmt(this.yt), this.X(this.xl) - 6, this.Y(this.yt));
+      if (this.Y(this.yb) < this.h - this.pad.b - 12) {
+        ctx.fillText(fmt(this.yb), this.X(this.xl) - 6, this.Y(this.yb));
+      }
+    }
+  }
+
+  function fmt(v) {
+    const a = Math.abs(v);
+    if (a >= 10) return v.toFixed(0);
+    if (a >= 1) return v.toFixed(1);
+    return v.toFixed(2);
+  }
+
+  const plots = {
+    diagram: new Plot(el.diagram),
+    field: new Plot(el.field),
+    world: new Plot(el.world, { l: 0, r: 0, t: 0, b: 0 })
+  };
+
+  function fitWorld() {
+    const s = state.sys;
+    plots.diagram.set(s.mu.min, s.mu.max, s.x.min, s.x.max);
+    plots.field.set(s.x.min, s.x.max, -2.4, 2.4);
+  }
+
+  function drawDiagram() {
+    const p = plots.diagram;
+    const { ctx } = p;
+    p.clear();
+    p.axes("μ", state.sys.ylabel || "x");
+    const pts = state.diagram;
+    for (const pt of pts) {
+      ctx.fillStyle = pt.stable ? STABLE : UNSTABLE;
+      ctx.globalAlpha = pt.stable ? 0.95 : 0.75;
+      const r = pt.stable ? 1.35 : 1.15;
+      ctx.beginPath();
+      ctx.arc(p.X(pt.mu), p.Y(pt.x), r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = MU;
+    ctx.lineWidth = 1.25;
+    ctx.beginPath();
+    ctx.moveTo(p.X(state.mu), p.Y(state.sys.x.min));
+    ctx.lineTo(p.X(state.mu), p.Y(state.sys.x.max));
+    ctx.stroke();
+    ctx.fillStyle = INK;
+    ctx.beginPath();
+    ctx.arc(p.X(state.mu), p.Y(state.x), 5, 0, TAU);
+    ctx.fill();
+    ctx.strokeStyle = "#0c0e12";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.font = "11px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = MUTED;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = STABLE;
+    ctx.fillRect(p.X(state.sys.mu.min) + 8, 14, 8, 8);
+    ctx.fillStyle = MUTED;
+    ctx.fillText("stable", p.X(state.sys.mu.min) + 20, 22);
+    ctx.fillStyle = UNSTABLE;
+    ctx.fillRect(p.X(state.sys.mu.min) + 78, 14, 8, 8);
+    ctx.fillStyle = MUTED;
+    ctx.fillText("unstable", p.X(state.sys.mu.min) + 90, 22);
+  }
+
+  function drawField() {
+    const p = plots.field;
+    const { ctx } = p;
+    p.clear();
+    const ys = [];
+    const n = 240;
+    for (let i = 0; i <= n; i++) {
+      const x = state.sys.x.min + (state.sys.x.max - state.sys.x.min) * (i / n);
+      ys.push({ x, y: f(x, state.mu) });
+    }
+    let m = 0.9;
+    const i0 = Math.floor(ys.length * 0.18);
+    const i1 = Math.floor(ys.length * 0.82);
+    for (let i = i0; i <= i1; i++) m = Math.max(m, Math.abs(ys[i].y));
+    m = Math.min(3.4, Math.max(1.15, m * 1.2));
+    p.set(state.sys.x.min, state.sys.x.max, -m, m);
+    p.axes(state.sys.ylabel || "x", "f(" + (state.sys.ylabel || "x") + "; μ)");
+    ctx.beginPath();
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.6;
+    ys.forEach((q, i) => {
+      const X = p.X(q.x), Y = p.Y(q.y);
+      if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+    });
+    ctx.stroke();
+    const y0 = p.Y(0);
+    const eqs = findEq(state.mu);
+    for (let i = 0; i < 11; i++) {
+      const x = state.sys.x.min + (state.sys.x.max - state.sys.x.min) * (i / 10);
+      const fx = f(x, state.mu);
+      const dir = Math.sign(fx);
+      if (dir === 0) continue;
+      const px = p.X(x);
+      ctx.strokeStyle = MUTED;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(px - 7 * dir, y0);
+      ctx.lineTo(px + 7 * dir, y0);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(px + 7 * dir, y0);
+      ctx.lineTo(px + 3 * dir, y0 - 3);
+      ctx.lineTo(px + 3 * dir, y0 + 3);
+      ctx.closePath();
+      ctx.fillStyle = MUTED;
+      ctx.fill();
+    }
+    for (const e of eqs) {
+      ctx.fillStyle = e.stable ? STABLE : UNSTABLE;
+      ctx.beginPath();
+      ctx.arc(p.X(e.x), p.Y(0), 6, 0, TAU);
+      ctx.fill();
+      if (!e.stable) {
+        ctx.fillStyle = BG;
+        ctx.beginPath();
+        ctx.arc(p.X(e.x), p.Y(0), 3, 0, TAU);
+        ctx.fill();
+      }
+    }
+    ctx.fillStyle = MU;
+    ctx.beginPath();
+    ctx.arc(p.X(state.x), p.Y(f(state.x, state.mu)), 5, 0, TAU);
+    ctx.fill();
+    ctx.fillStyle = INK;
+    ctx.beginPath();
+    ctx.arc(p.X(state.x), p.Y(0), 4.5, 0, TAU);
+    ctx.fill();
+  }
+
+  function drawPotential(ctx, w, h) {
+    const s = state.sys;
+    const xs = [];
+    const n = 220;
+    for (let i = 0; i <= n; i++) {
+      const x = s.x.min + (s.x.max - s.x.min) * (i / n);
+      xs.push({ x, v: V(x, state.mu) });
+    }
+    let vmin = Infinity, vmax = -Infinity;
+    for (const q of xs) { vmin = Math.min(vmin, q.v); vmax = Math.max(vmax, q.v); }
+    const span = Math.max(0.6, vmax - vmin);
+    vmin -= 0.12 * span; vmax += 0.28 * span;
+    const X = (x) => 28 + (x - s.x.min) / (s.x.max - s.x.min) * (w - 56);
+    const Y = (v) => 18 + (vmax - v) / (vmax - vmin) * (h - 48);
+    ctx.beginPath();
+    xs.forEach((q, i) => {
+      const px = X(q.x), py = Y(q.v);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.strokeStyle = "#cfc8b8";
+    ctx.lineWidth = 1.7;
+    ctx.stroke();
+    ctx.lineTo(X(s.x.max), h);
+    ctx.lineTo(X(s.x.min), h);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(78,201,176,0.08)";
+    ctx.fill();
+    const px = X(state.x);
+    const py = Y(V(state.x, state.mu));
+    ctx.fillStyle = MU;
+    ctx.beginPath();
+    ctx.arc(px, py - 9, 9, 0, TAU);
+    ctx.fill();
+    ctx.strokeStyle = "#0c0e12";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = MUTED;
+    ctx.font = "11px 'IBM Plex Mono', monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("V(x)", w / 2, h - 12);
+  }
+
+  function drawHoop(ctx, w, h, physical) {
+    const cx = w * 0.5;
+    const cy = h * 0.48;
+    const R = Math.min(w, h) * 0.34;
+    const theta = physical ? state.x : state.x;
+    ctx.strokeStyle = GRID;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - R - 18);
+    ctx.lineTo(cx, cy + R + 22);
+    ctx.stroke();
+    ctx.strokeStyle = "#cfc8b8";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, TAU);
+    ctx.stroke();
+    const mu = state.mu;
+    const omega = physical ? Math.sqrt(Math.max(0.05, mu)) : Math.sqrt(Math.max(0.08, mu + 1.7));
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.strokeStyle = "rgba(230,195,92,0.55)";
+    ctx.lineWidth = 1.2;
+    for (const side of [-1, 1]) {
+      ctx.beginPath();
+      const r = 16 + 10 * omega;
+      ctx.ellipse(0, 0, r, 6 + 2 * omega, 0, side < 0 ? 0.4 : Math.PI + 0.4, side < 0 ? Math.PI - 0.4 : TAU - 0.4);
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.fillStyle = MU;
+    ctx.font = "11px 'IBM Plex Mono', monospace";
+    ctx.textAlign = "left";
+    ctx.fillText(physical ? `ω ~ √μ   μ = ${mu.toFixed(2)}` : `spin ~ √(μ+const)   μ = ${mu.toFixed(2)}`, 16, 22);
+    const bx = cx + R * Math.sin(theta);
+    const by = cy + R * Math.cos(theta);
+    ctx.strokeStyle = MUTED;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 4]);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(bx, by);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = MU;
+    ctx.beginPath();
+    ctx.arc(bx, by, 9, 0, TAU);
+    ctx.fill();
+    ctx.strokeStyle = "#0c0e12";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = MUTED;
+    ctx.font = "11px 'IBM Plex Mono', monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("g", cx, cy + R + 36);
+    ctx.beginPath();
+    ctx.strokeStyle = MUTED;
+    ctx.moveTo(cx, cy + R + 24);
+    ctx.lineTo(cx, cy + R + 8);
+    ctx.stroke();
+  }
+
+  function drawWorld() {
+    const p = plots.world;
+    const { ctx, w, h } = p;
+    ctx.fillStyle = BG;
+    ctx.fillRect(0, 0, w, h);
+    const vis = state.sys.visual;
+    if (vis === "hoop") drawHoop(ctx, w, h, false);
+    else if (vis === "hoop-phys") drawHoop(ctx, w, h, true);
+    else drawPotential(ctx, w, h);
+  }
+
+  function rk4(x, dt) {
+    const mu = state.mu;
+    const k1 = f(x, mu);
+    const k2 = f(x + 0.5 * dt * k1, mu);
+    const k3 = f(x + 0.5 * dt * k2, mu);
+    const k4 = f(x + dt * k3, mu);
+    return x + (dt / 6) * (k1 + 2 * k2 + 2 * k3 + k4);
+  }
+
+  function stepParticle(dt) {
+    const { min, max } = state.sys.x;
+    let x = state.x;
+    const sub = 6;
+    const h = dt / sub;
+    for (let i = 0; i < sub; i++) x = rk4(x, h);
+    if (state.sys.id === "hoop") {
+      while (x > Math.PI) x -= TAU;
+      while (x < -Math.PI) x += TAU;
+    } else {
+      x = Math.min(max, Math.max(min, x));
+    }
+    state.x = x;
+  }
+
+  function stepSweep(dt) {
+    if (state.sweep === 0 && !state.hyst) return;
+    const { min, max } = state.sys.mu;
+    const speed = state.hyst ? 0.22 : 0.35;
+    const dir = state.hyst ? state.hystDir : state.sweep;
+    let mu = state.mu + dir * speed * dt;
+    if (state.hyst) {
+      if (mu >= max) { mu = max; state.hystDir = -1; }
+      if (mu <= min) { mu = min; state.hystDir = 1; }
+    } else if (mu > max || mu < min) {
+      mu = Math.min(max, Math.max(min, mu));
+      state.sweep = 0;
+      el.btnSweep.classList.remove("active");
+    }
+    state.mu = mu;
+    el.mu.value = String(mu);
+  }
+
+  function renderMeta() {
+    const s = state.sys;
+    el.muval.textContent = state.mu.toFixed(3);
+    el.epsval.textContent = state.eps.toFixed(3);
+    const eqs = findEq(state.mu);
+    el.table.innerHTML = eqs.length
+      ? eqs.map((e) => `<tr>
+          <td>${e.x.toFixed(3)}</td>
+          <td>${e.df.toFixed(3)}</td>
+          <td><span class="pill ${e.stable ? "st" : "un"}">${e.stable ? "stable" : "unstable"}</span></td>
+        </tr>`).join("")
+      : `<tr><td colspan="3" style="color:var(--muted)">none in view</td></tr>`;
+    const near = s.bif != null && Math.abs(state.mu - s.bif) < 0.07;
+    const head = near
+      ? `<strong>Near a bifurcation at μ = ${s.bif}.</strong> `
+      : "";
+    el.identify.innerHTML = head + s.regime(state.mu, state.eps);
+  }
+
+  function selectSys(id) {
+    const s = SYSTEMS.find((t) => t.id === id);
+    state.sys = s;
+    state.mu = s.mu.init;
+    state.eps = 0;
+    state.x = s.resetX;
+    state.sweep = 0;
+    state.hyst = false;
+    el.btnSweep.classList.remove("active");
+    el.btnHyst.classList.remove("active");
+    el.mu.min = s.mu.min;
+    el.mu.max = s.mu.max;
+    el.mu.step = "0.001";
+    el.mu.value = s.mu.init;
+    el.name.textContent = s.name;
+    el.eq.textContent = s.eq;
+    el.story.textContent = s.story;
+    el.epsWrap.style.display = s.eps ? "block" : "none";
+    el.eps.value = "0";
+    el.custombox.classList.toggle("on", s.id === "custom");
+    el.worldtitle.textContent = s.world;
+    el.diagtitle.textContent = "Bifurcation diagram · " + (s.ylabel || "x") + " versus μ";
+    document.querySelectorAll("#sysnav button").forEach((b) => {
+      b.setAttribute("aria-selected", b.dataset.id === id ? "true" : "false");
+    });
+    if (s.id === "custom") applyCustom();
+    else computeDiagram();
+    fitWorld();
+    if (location.hash.slice(1) !== id) history.replaceState(null, "", "#" + id);
+  }
+
+  function applyCustom() {
+    try {
+      const fn = compile(el.customf.value);
+      state.sys.f = (x, mu) => fn(x, mu);
+      state.custom = el.customf.value;
+      computeDiagram();
+    } catch (err) {
+      el.identify.textContent = "Could not parse f(x, mu). Use JS arithmetic, e.g. mu*x - x**3.";
+    }
+  }
+
+  function buildNav() {
+    SYSTEMS.forEach((s) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.dataset.id = s.id;
+      b.textContent = s.name;
+      b.addEventListener("click", () => selectSys(s.id));
+      el.nav.appendChild(b);
+    });
+  }
+
+  el.mu.addEventListener("input", () => {
+    state.mu = parseFloat(el.mu.value);
+    state.sweep = 0;
+    state.hyst = false;
+    el.btnSweep.classList.remove("active");
+    el.btnHyst.classList.remove("active");
+  });
+  el.eps.addEventListener("input", () => {
+    state.eps = parseFloat(el.eps.value);
+    computeDiagram();
+  });
+  el.btnSweep.addEventListener("click", () => {
+    state.hyst = false;
+    el.btnHyst.classList.remove("active");
+    if (state.sweep === 0) {
+      state.sweep = 1;
+      if (state.mu >= state.sys.mu.max - 1e-6) state.sweep = -1;
+      el.btnSweep.classList.add("active");
+    } else {
+      state.sweep = 0;
+      el.btnSweep.classList.remove("active");
+    }
+  });
+  el.btnHyst.addEventListener("click", () => {
+    state.sweep = 0;
+    el.btnSweep.classList.remove("active");
+    state.hyst = !state.hyst;
+    el.btnHyst.classList.toggle("active", state.hyst);
+    if (state.hyst) state.hystDir = 1;
+  });
+  el.btnReset.addEventListener("click", () => { state.x = state.sys.resetX; });
+  el.customf.addEventListener("change", applyCustom);
+  document.querySelectorAll(".custom-row button").forEach((b) => {
+    b.addEventListener("click", () => {
+      el.customf.value = b.dataset.expr;
+      applyCustom();
+    });
+  });
+
+  function pointerToX(canvas, plot, ev) {
+    const r = canvas.getBoundingClientRect();
+    return plot.invX(ev.clientX - r.left);
+  }
+  el.field.addEventListener("pointerdown", (ev) => {
+    state.x = pointerToX(el.field, plots.field, ev);
+  });
+  el.diagram.addEventListener("pointerdown", (ev) => {
+    const r = el.diagram.getBoundingClientRect();
+    const p = plots.diagram;
+    const mu = p.xl + (ev.clientX - r.left - p.pad.l) / (p.w - p.pad.l - p.pad.r) * (p.xr - p.xl);
+    const x = p.yb + (1 - (ev.clientY - r.top - p.pad.t) / (p.h - p.pad.t - p.pad.b)) * (p.yt - p.yb);
+    state.mu = Math.min(state.sys.mu.max, Math.max(state.sys.mu.min, mu));
+    state.x = Math.min(state.sys.x.max, Math.max(state.sys.x.min, x));
+    el.mu.value = String(state.mu);
+    state.sweep = 0;
+    state.hyst = false;
+  });
+
+  window.addEventListener("keydown", (ev) => {
+    if (ev.target === el.customf) return;
+    const span = state.sys.mu.max - state.sys.mu.min;
+    if (ev.key === "ArrowRight") {
+      state.mu = Math.min(state.sys.mu.max, state.mu + 0.02 * span);
+      el.mu.value = String(state.mu);
+      ev.preventDefault();
+    }
+    if (ev.key === "ArrowLeft") {
+      state.mu = Math.max(state.sys.mu.min, state.mu - 0.02 * span);
+      el.mu.value = String(state.mu);
+      ev.preventDefault();
+    }
+    if (ev.key === " ") {
+      el.btnSweep.click();
+      ev.preventDefault();
+    }
+  });
+
+  function resize() {
+    plots.diagram.resize();
+    plots.field.resize();
+    plots.world.resize();
+  }
+  window.addEventListener("resize", resize);
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.033, (now - last) / 1000);
+    last = now;
+    state.t += dt;
+    stepSweep(dt);
+    stepParticle(dt);
+    drawDiagram();
+    drawField();
+    drawWorld();
+    renderMeta();
+    requestAnimationFrame(frame);
+  }
+
+  buildNav();
+  resize();
+  const start = location.hash.slice(1);
+  selectSys(SYSTEMS.some((s) => s.id === start) ? start : "sn");
+  window.addEventListener("hashchange", () => {
+    const id = location.hash.slice(1);
+    if (SYSTEMS.some((s) => s.id === id) && state.sys.id !== id) selectSys(id);
+  });
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
